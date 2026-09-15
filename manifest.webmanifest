@@ -1,0 +1,19 @@
+{
+  "name": "Budget",
+  "short_name": "Budget",
+  "description": "Local budget planner",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1c1c1c",
+  "theme_color": "#2a2a2a",
+  "icons": [
+    {
+      "src": "images/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
