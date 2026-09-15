@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Budget</title>
+  <meta name="theme-color" content="#2a2a2a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Budget">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="images/icon.svg" sizes="any">
+  <link rel="icon" type="image/png" href="images/icon.svg" sizes="32x32">
+  <link rel="apple-touch-icon" href="images/icon.svg">
+  <link href="Page.css" rel="stylesheet">
+</head>
+<body>
+  <header class="page-header">
+    <div class="header-brand">
+      <h1>Budget</h1>
+      <p class="shell-label">local budget</p>
+    </div>
+    <nav class="site-nav" aria-label="Pages">
+      <button class="site-nav-link is-active" type="button" data-page="homePage">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3.2 3 11h2v9h6v-6h2v6h6v-9h2L12 3.2z"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="site-nav-link" type="button" data-page="billsPage">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 2h12a2 2 0 0 1 2 2v16l-3-1.5L14 20l-3-1.5L8 20l-3-1.5L3 20V4a2 2 0 0 1 2-2h1zm2 5v2h8V7H8zm0 4v2h8v-2H8zm0 4v2h5v-2H8z"/></svg>
+        <span>Bills</span>
+      </button>
+      <button class="site-nav-link" type="button" data-page="planPage">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 .01 20.01A10 10 0 0 0 12 2zm1 10.6 3.5 2.1-.8 1.3L11 13V7h2v5.6z"/></svg>
+        <span>Plan</span>
+      </button>
+      <button class="site-nav-link" type="button" data-page="settingsPage">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.1 12.7a7.4 7.4 0 0 0 0-1.4l2-1.5-2-3.5-2.4 1a7.2 7.2 0 0 0-1.2-.7L15 4h-4l-.5 2.6a7.2 7.2 0 0 0-1.2.7l-2.4-1-2 3.5 2 1.5a7.4 7.4 0 0 0 0 1.4l-2 1.5 2 3.5 2.4-1c.4.3.8.5 1.2.7L11 20h4l.5-2.6c.4-.2.8-.4 1.2-.7l2.4 1 2-3.5-2-1.5zM13 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="container-fluid">
+    <section id="homePage" class="page is-active">
+      <div class="card" id="planCard">
+        <div id="planCompact" class="compact-row" hidden>
+          <div>
+            <h2 id="planCompactTitle">Plan</h2>
+            <p class="muted" id="planCompactDetail"></p>
+          </div>
+          <button type="button" class="text-btn" id="editPlanBtn">Change</button>
+        </div>
+        <div id="planEditor">
+          <h2>What kind of plan?</h2>
+          <p class="muted">Two-week plans need a start date. Monthly plans always run from the 1st.</p>
+          <div class="choice-row" role="group" aria-label="Plan type">
+            <button type="button" class="choice" id="chooseBiweekly">
+              <strong>Every two weeks</strong>
+              <span>14 days from your start date, then the next 14.</span>
+            </button>
+            <button type="button" class="choice" id="chooseMonthly">
+              <strong>Monthly</strong>
+              <span>The 1st through the last day of each month.</span>
+            </button>
+          </div>
+          <label class="field" id="startDateField" hidden>
+            <span class="field-title">Two-week start date</span>
+            <input type="date" id="startDateInput">
+          </label>
+          <button type="button" class="btn-primary" id="savePlanBtn">Save plan</button>
+        </div>
+      </div>
+
+      <div class="period-bar" id="periodBar" hidden>
+        <button type="button" class="page-btn" id="prevPeriodBtn" aria-label="Previous period">←</button>
+        <div class="period-copy">
+          <p class="period-range" id="periodRange"></p>
+          <p class="muted" id="periodKind"></p>
+        </div>
+        <button type="button" class="page-btn" id="nextPeriodBtn" aria-label="Next period">→</button>
+      </div>
+
+      <div class="card stat-card" id="summaryCard" hidden>
+        <div class="stat-row">
+          <div>
+            <p class="muted">Income</p>
+            <p class="stat-value" id="inTotal">$0.00</p>
+          </div>
+          <div>
+            <p class="muted">Spending</p>
+            <p class="stat-value" id="outTotal">$0.00</p>
+          </div>
+        </div>
+        <div class="left-strip">
+          <p class="muted">Left this period</p>
+          <p class="hero-left" id="leftTotal">$0.00</p>
+        </div>
+      </div>
+
+      <div class="card" id="incomeListCard" hidden>
+        <div class="card-head">
+          <div>
+            <h2>Income</h2>
+            <p class="muted">Money that landed in this window.</p>
+          </div>
+        </div>
+        <ul class="entry-list" id="incomeList"></ul>
+        <p class="muted empty-line" id="incomeEmpty">Nothing added yet.</p>
+      </div>
+
+      <div class="card" id="dueBillsCard" hidden>
+        <div class="card-head">
+          <div>
+            <h2>Due this period</h2>
+            <p class="muted">Bills and savings that hit this window.</p>
+          </div>
+        </div>
+        <ul class="entry-list" id="dueBillsList"></ul>
+        <p class="muted empty-line" id="dueBillsEmpty">No bills due this period.</p>
+      </div>
+    </section>
+
+    <section id="planPage" class="page">
+      <div class="empty-state" id="planNeedSetup">
+        <h2>Plan</h2>
+        <p>Save a two-week or monthly plan on Home first. Then you can split a savings goal across each period.</p>
+      </div>
+      <div class="card" id="savingsFormCard" hidden>
+        <h2>New savings goal</h2>
+        <p class="muted">Timed goals split a total across periods until a date. Continuous goals take a monthly amount forever.</p>
+        <div class="choice-row" role="group" aria-label="Savings type">
+          <button type="button" class="choice is-active" id="savingTimedBtn">
+            <strong>Timed</strong>
+            <span>Reach a total by a date</span>
+          </button>
+          <button type="button" class="choice" id="savingContinuousBtn">
+            <strong>Continuous</strong>
+            <span>Save the same amount every month</span>
+          </button>
+        </div>
+        <label class="field">
+          <span class="field-title">What is it for?</span>
+          <input type="text" id="savingName" placeholder="Emergency fund">
+        </label>
+        <label class="field">
+          <span class="field-title" id="savingAmountLabel">How much to save</span>
+          <input type="text" id="savingAmount" inputmode="decimal" placeholder="0.00">
+        </label>
+        <label class="field" id="savingDateField">
+          <span class="field-title">Need it by</span>
+          <input type="date" id="savingDate">
+        </label>
+        <div class="save-preview" id="savingPreview">
+          <p class="muted" id="savingPreviewNote">Fill in the amount and date to see the per-period hit.</p>
+          <p class="hero-left" id="savingPreviewAmount" hidden>$0.00</p>
+        </div>
+        <button type="button" class="btn-primary" id="saveSavingBtn" disabled>Save goal</button>
+      </div>
+      <div class="card" id="savingsListCard" hidden>
+        <div class="card-head">
+          <div>
+            <h2>Saved goals</h2>
+            <p class="muted">Timed goals stop on their date. Continuous goals stay on Due this period every window.</p>
+          </div>
+        </div>
+        <ul class="entry-list" id="savingsList"></ul>
+        <p class="muted empty-line" id="savingsEmpty">No savings goals yet.</p>
+      </div>
+    </section>
+
+    <section id="billsPage" class="page">
+      <div class="card" id="billsCard">
+        <div class="card-head">
+          <div>
+            <h2>Bills</h2>
+            <p class="muted">Monthly and yearly payments. They count as spending only in the period that contains the due day.</p>
+          </div>
+        </div>
+        <ul class="entry-list" id="billsList"></ul>
+        <p class="muted empty-line" id="billsEmpty">No bills yet. Tap + to add one.</p>
+      </div>
+    </section>
+
+    <section id="settingsPage" class="page">
+      <div class="card">
+        <h2>Colors</h2>
+        <p class="muted">Every surface comes from Primary. Buttons, the + control, and selected states come from Accent. Other tones are dimmed or brightened from those two.</p>
+        <div class="color-row">
+          <div class="color-meta">
+            <strong>Primary</strong>
+            <code id="primaryHex">#2a2a2a</code>
+          </div>
+          <input type="color" id="primaryColor" value="#2a2a2a" aria-label="Primary color">
+        </div>
+        <div class="color-row">
+          <div class="color-meta">
+            <strong>Accent</strong>
+            <code id="accentHex">#666666</code>
+          </div>
+          <input type="color" id="accentColor" value="#666666" aria-label="Accent color">
+        </div>
+        <div class="theme-actions">
+          <button type="button" class="btn-secondary" id="defaultThemeBtn">Default</button>
+          <button type="button" class="btn-primary btn-inline" id="saveThemeBtn">Save colors</button>
+        </div>
+        <p class="muted empty-line" id="themeSavedNote" hidden>Saved on this device.</p>
+      </div>
+      <div class="card">
+        <h2>Data file</h2>
+        <p class="muted">The app always keeps a copy in this browser. When it can, it also writes <code>app.json</code> — that works in the installed app on Chrome more often than in a raw HTML file.</p>
+        <p class="muted" id="dataFileStatus">Checking save location…</p>
+        <div class="theme-actions">
+          <button type="button" class="btn-secondary" id="exportJsonBtn">Download app.json</button>
+          <button type="button" class="btn-primary btn-inline" id="linkJsonBtn">Save app.json</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button type="button" class="fab" id="openAddBtn" hidden aria-label="Add">+</button>
+
+  <div id="incomeModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="incomeModalTitle">Add income</h2>
+        <button class="modal-close" id="incomeModalClose" type="button">&times;</button>
+      </div>
+      <form id="incomeForm" class="stack-form">
+        <label class="field">
+          <span class="field-title">Name</span>
+          <input type="text" id="incomeName" placeholder="Paycheck" required>
+        </label>
+        <label class="field">
+          <span class="field-title">Amount</span>
+          <input type="text" id="incomeAmount" inputmode="decimal" placeholder="0.00" required>
+        </label>
+        <label class="field">
+          <span class="field-title">Date</span>
+          <input type="date" id="incomeDate" required>
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="text-btn" id="incomeDeleteBtn" hidden>Delete</button>
+          <button type="button" class="text-btn" id="incomeModalCancel">Cancel</button>
+          <button type="submit" class="btn-primary btn-inline" id="incomeSubmitBtn">Add income</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="billModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="billModalTitle">Add bill</h2>
+        <button class="modal-close" id="billModalClose" type="button">&times;</button>
+      </div>
+      <form id="billForm" class="stack-form">
+        <label class="field">
+          <span class="field-title">Name</span>
+          <input type="text" id="billName" placeholder="Rent" required>
+        </label>
+        <label class="field">
+          <span class="field-title">Cost</span>
+          <input type="text" id="billAmount" inputmode="decimal" placeholder="0.00" required>
+        </label>
+        <p class="field-title" style="margin-top:0.7rem">How often</p>
+        <div class="choice-row" role="group" aria-label="Bill frequency">
+          <button type="button" class="choice is-active" id="billMonthlyBtn">
+            <strong>Monthly</strong>
+            <span>Same day each month</span>
+          </button>
+          <button type="button" class="choice" id="billYearlyBtn">
+            <strong>Yearly</strong>
+            <span>Same day each year</span>
+          </button>
+        </div>
+        <label class="field">
+          <span class="field-title" id="billDateLabel">Day of the month</span>
+          <input type="date" id="billDate" required>
+        </label>
+        <p class="muted" id="billDateHint">Pick any date. Only the day is used each month.</p>
+        <div class="modal-actions">
+          <button type="button" class="text-btn" id="billDeleteBtn" hidden>Delete</button>
+          <button type="button" class="text-btn" id="billModalCancel">Cancel</button>
+          <button type="submit" class="btn-primary btn-inline" id="billSubmitBtn">Add bill</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="savingModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="savingModalTitle">Edit savings goal</h2>
+        <button class="modal-close" id="savingModalClose" type="button">&times;</button>
+      </div>
+      <form id="savingModalForm" class="stack-form">
+        <label class="field">
+          <span class="field-title">What is it for?</span>
+          <input type="text" id="savingModalName" required>
+        </label>
+        <label class="field">
+          <span class="field-title" id="savingModalAmountLabel">How much to save</span>
+          <input type="text" id="savingModalAmount" inputmode="decimal" required>
+        </label>
+        <label class="field" id="savingModalDateField">
+          <span class="field-title">Need it by</span>
+          <input type="date" id="savingModalDate">
+        </label>
+        <p class="muted" id="savingModalNote"></p>
+        <div class="modal-actions">
+          <button type="button" class="text-btn" id="savingDeleteBtn">Delete</button>
+          <button type="button" class="text-btn" id="savingModalCancel">Cancel</button>
+          <button type="submit" class="btn-primary btn-inline">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app-data.js"></script>
+  <script src="budget.js"></script>
+
+</body>
+</html>
