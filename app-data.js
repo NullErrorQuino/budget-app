@@ -6,5 +6,6 @@ window.APP_DATA = {
   checks: {},
   categories: [],
   transactions: [],
+  expenses: [],
   theme: { primary: "#2a2a2a", accent: "#666666" }
 };
