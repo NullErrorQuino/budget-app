@@ -16,6 +16,7 @@
           checks: {},
           categories: [],
           transactions: [],
+          expenses: [],
           theme: { primary: "#2a2a2a", accent: "#666666" }
         };
       }
@@ -43,6 +44,7 @@
             if (!Array.isArray(appData.savings)) appData.savings = [];
             if (!appData.checks || typeof appData.checks !== "object") appData.checks = {};
             if (!Array.isArray(appData.transactions)) appData.transactions = [];
+            if (!Array.isArray(appData.expenses)) appData.expenses = [];
           }
         }
       } catch (e) {}
@@ -50,10 +52,12 @@
       if (
         !appData.setup &&
         (!appData.incomes || !appData.incomes.length) &&
+        (!appData.expenses || !appData.expenses.length) &&
         window.APP_DATA &&
         typeof window.APP_DATA === "object"
       ) {
         appData = Object.assign(emptyData(), window.APP_DATA);
+        if (!Array.isArray(appData.expenses)) appData.expenses = [];
       }
 
       editingPlan = !appData.setup;
@@ -193,7 +197,8 @@
           (data.setup ||
             (data.incomes && data.incomes.length) ||
             (data.bills && data.bills.length) ||
-            (data.savings && data.savings.length))
+            (data.savings && data.savings.length) ||
+            (data.expenses && data.expenses.length))
         );
       }
 
@@ -527,6 +532,7 @@
         updateFab();
         if (id === "billsPage") renderBills();
         if (id === "planPage") renderPlan();
+        if (id === "expensesPage") renderExpenses();
       }
 
       function planReady() {
@@ -557,6 +563,12 @@
         });
       }
 
+      function periodExpenses(period) {
+        return (appData.expenses || []).filter(function (item) {
+          return inPeriod(item.date, period);
+        });
+      }
+
       function periodSpent(period) {
         var logged = (appData.transactions || [])
           .filter(function (item) {
@@ -565,8 +577,12 @@
           .reduce(function (n, item) {
             return n + Number(item.amount || 0);
           }, 0);
+        var oneTime = periodExpenses(period).reduce(function (n, item) {
+          return n + Number(item.amount || 0);
+        }, 0);
         return (
           logged +
+          oneTime +
           periodDueBills(period).reduce(function (n, item) {
             return n + Number(item.amount || 0);
           }, 0) +
@@ -874,8 +890,9 @@
           (opts.check ? "<label class=\"tick\"><input type=\"checkbox\"></label>" : "") +
           "<div class=\"entry-copy\"><strong></strong><span class=\"muted\"></span></div>" +
           "<div class=\"entry-side\"><span class=\"amount\"></span>" +
-          "<button type=\"button\" class=\"text-btn\" data-edit>Edit</button></div>";
+          "<button type=\"button\" class=\"text-btn\" data-edit></button></div>";
         li.querySelector("strong").textContent = item.name;
+        li.querySelector("[data-edit]").textContent = opts.actionLabel || "Edit";
         li.querySelector(".muted").textContent = subtitle;
         li.querySelector(".amount").textContent = money.format(item.amount);
         if (opts.onEdit) {
@@ -907,6 +924,54 @@
           );
         });
         document.getElementById("billsEmpty").hidden = bills.length > 0;
+      }
+
+      function sortedExpenses(items) {
+        return items.slice().sort(function (a, b) {
+          return String(b.date).localeCompare(String(a.date));
+        });
+      }
+
+      function deleteExpense(id) {
+        appData.expenses = (appData.expenses || []).filter(function (row) {
+          return row.id !== id;
+        });
+        persist();
+        renderExpenses();
+        renderHome();
+      }
+
+      function expenseEntry(item) {
+        return renderEntry(item, formatDay(item.date), {
+          actionLabel: "Delete",
+          onEdit: function () {
+            deleteExpense(item.id);
+          }
+        });
+      }
+
+      function renderExpenses() {
+        var dateInput = document.getElementById("expenseDate");
+        if (!dateInput.value) dateInput.value = todayIso();
+        var list = document.getElementById("expensesList");
+        var items = sortedExpenses(appData.expenses || []);
+        list.innerHTML = "";
+        items.forEach(function (item) {
+          list.appendChild(expenseEntry(item));
+        });
+        document.getElementById("expensesEmpty").hidden = items.length > 0;
+      }
+
+      function parseAmount(raw) {
+        var text = String(raw || "").replace(/[$,\s]/g, "");
+        if (!/^\d*\.?\d+$|^\d+\.$/.test(text)) return NaN;
+        return Number(text);
+      }
+
+      function showExpenseError(text) {
+        var el = document.getElementById("expenseError");
+        el.textContent = text || "";
+        el.hidden = !text;
       }
 
       function renderHome() {
@@ -956,6 +1021,7 @@
         document.getElementById("periodBar").hidden = !ready;
         document.getElementById("summaryCard").hidden = !ready;
         document.getElementById("incomeListCard").hidden = !ready;
+        document.getElementById("homeExpensesCard").hidden = !ready;
         document.getElementById("dueBillsCard").hidden = !ready;
         updateFab();
         if (!ready) return;
@@ -991,6 +1057,14 @@
             );
           });
         document.getElementById("incomeEmpty").hidden = items.length > 0;
+
+        var expenseList = document.getElementById("homeExpensesList");
+        var expenses = sortedExpenses(periodExpenses(period));
+        expenseList.innerHTML = "";
+        expenses.forEach(function (item) {
+          expenseList.appendChild(expenseEntry(item));
+        });
+        document.getElementById("homeExpensesEmpty").hidden = expenses.length > 0;
 
         var dueList = document.getElementById("dueBillsList");
         dueList.innerHTML = "";
@@ -1161,6 +1235,35 @@
         closeIncomeModal();
         renderHome();
       });
+      document.getElementById("expenseForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var name = document.getElementById("expenseName").value.trim();
+        var amount = parseAmount(document.getElementById("expenseAmount").value);
+        var date = document.getElementById("expenseDate").value || todayIso();
+        if (!name) {
+          showExpenseError("Give the expense a name.");
+          document.getElementById("expenseName").focus();
+          return;
+        }
+        if (!Number.isFinite(amount) || amount <= 0) {
+          showExpenseError("Enter an amount greater than zero.");
+          document.getElementById("expenseAmount").focus();
+          return;
+        }
+        showExpenseError("");
+        appData.expenses.push({
+          id: uid(),
+          name: name,
+          amount: Math.round(amount * 100) / 100,
+          date: date
+        });
+        persist();
+        document.getElementById("expenseName").value = "";
+        document.getElementById("expenseAmount").value = "";
+        document.getElementById("expenseDate").value = todayIso();
+        renderExpenses();
+        renderHome();
+      });
       document.getElementById("savingModalClose").addEventListener("click", closeSavingModal);
       document.getElementById("savingModalCancel").addEventListener("click", closeSavingModal);
       document.getElementById("savingModal").addEventListener("click", function (e) {
@@ -1315,6 +1418,7 @@
           if (!Array.isArray(appData.bills)) appData.bills = [];
           if (!Array.isArray(appData.savings)) appData.savings = [];
           if (!appData.checks || typeof appData.checks !== "object") appData.checks = {};
+          if (!Array.isArray(appData.expenses)) appData.expenses = [];
           editingPlan = !appData.setup;
           draftCadence = appData.setup ? appData.setup.cadence : null;
           applyTheme(currentTheme().primary, currentTheme().accent);

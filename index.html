@@ -30,6 +30,10 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 2h12a2 2 0 0 1 2 2v16l-3-1.5L14 20l-3-1.5L8 20l-3-1.5L3 20V4a2 2 0 0 1 2-2h1zm2 5v2h8V7H8zm0 4v2h8v-2H8zm0 4v2h5v-2H8z"/></svg>
         <span>Bills</span>
       </button>
+      <button class="site-nav-link" type="button" data-page="expensesPage">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+        <span>Expenses</span>
+      </button>
       <button class="site-nav-link" type="button" data-page="planPage">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 .01 20.01A10 10 0 0 0 12 2zm1 10.6 3.5 2.1-.8 1.3L11 13V7h2v5.6z"/></svg>
         <span>Plan</span>
@@ -109,6 +113,17 @@
         <p class="muted empty-line" id="incomeEmpty">Nothing added yet.</p>
       </div>
 
+      <div class="card" id="homeExpensesCard" hidden>
+        <div class="card-head">
+          <div>
+            <h2>Expenses</h2>
+            <p class="muted">One-time spending in this window.</p>
+          </div>
+        </div>
+        <ul class="entry-list" id="homeExpensesList"></ul>
+        <p class="muted empty-line" id="homeExpensesEmpty">No expenses this period.</p>
+      </div>
+
       <div class="card" id="dueBillsCard" hidden>
         <div class="card-head">
           <div>
@@ -179,6 +194,39 @@
         </div>
         <ul class="entry-list" id="billsList"></ul>
         <p class="muted empty-line" id="billsEmpty">No bills yet. Tap + to add one.</p>
+      </div>
+    </section>
+
+    <section id="expensesPage" class="page">
+      <div class="card" id="expenseFormCard">
+        <h2>New expense</h2>
+        <p class="muted">A one-time cost. It counts as spending in the period that contains its date.</p>
+        <form id="expenseForm" class="stack-form" novalidate>
+          <label class="field">
+            <span class="field-title">Name</span>
+            <input type="text" id="expenseName" placeholder="Food" required>
+          </label>
+          <label class="field">
+            <span class="field-title">Amount</span>
+            <input type="text" id="expenseAmount" inputmode="decimal" placeholder="0.00" required>
+          </label>
+          <label class="field">
+            <span class="field-title">Date</span>
+            <input type="date" id="expenseDate">
+          </label>
+          <p class="muted empty-line" id="expenseError" hidden></p>
+          <button type="submit" class="btn-primary" id="addExpenseBtn">Add expense</button>
+        </form>
+      </div>
+      <div class="card" id="expensesListCard">
+        <div class="card-head">
+          <div>
+            <h2>Expenses</h2>
+            <p class="muted">Newest first. Delete one if it was a mistake.</p>
+          </div>
+        </div>
+        <ul class="entry-list" id="expensesList"></ul>
+        <p class="muted empty-line" id="expensesEmpty">No expenses yet.</p>
       </div>
     </section>
 
